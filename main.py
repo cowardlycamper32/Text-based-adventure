@@ -36,17 +36,17 @@ def runCMD(cmd, splitter = ":"):
         return int(cmd[1])
 
 
-for q in range(2):
-    running = True
-    HEAD = 0
 
-    while running:
-        instruction = instructions[HEAD].strip()
-        retVal = runCMD(instruction)
-        if not retVal:
-            HEAD = HEAD + 1
-        else:
-            HEAD = retVal - 1
+running = True
+HEAD = 0
 
-        if HEAD >= len(instructions):
-            running = False
+while running:
+    instruction = instructions[HEAD].strip()
+    retVal = runCMD(instruction)
+    if not retVal:
+        HEAD = HEAD + 1
+    else:
+        HEAD = retVal - 1
+
+    if HEAD >= len(instructions):
+        running = False
