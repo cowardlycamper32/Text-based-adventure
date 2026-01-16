@@ -1,0 +1,10 @@
+TEXT = TEXT:<name>:<text>
+QUESTION = QUESTION:<name>:<var>:<var_type>:<text>:<option1>,<option2>,...
+IF = IF:<var>:<IS|NOT>:<text>:<CMD with different seperator>
+GOTO = GOTO:<line_num>
+VAR = VAR:<var_type>:<var>:<value>
+RETURN = RETURN:<VARS|text>
+ADD = ADD:<item1>,<item2>,...:<output_var_name>
+SUB = SUB:<item1>,<item2>,...:<output_var_name>
+MUL = MUL:<item1>,<item2>,...:<output_var_name>
+DIV = DIV:<item1>,<item2>:<output_var_name>

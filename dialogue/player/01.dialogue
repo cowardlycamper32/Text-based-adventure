@@ -1,6 +1,0 @@
-TEXT:Player:Hello World
-QUESTION:Player:yesnoone:Yes or No?:Yes,No
-IF:yesnoone:NOT:Yes:GOTO;6
-TEXT:Player:Thank You
-GOTO: 8
-TEXT:Player:Fuck You
