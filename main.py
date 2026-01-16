@@ -1,5 +1,8 @@
 import os
+import re
 #from deprecated import deprecated
+
+LETTERS = re.compile("[a-zA-Z]")
 
 def convert(obj, type):
     if type == "STRING" or type == "STR":
@@ -24,7 +27,28 @@ def text(cmd):
     :param cmd: array of keywords used in command
     :return:
     """
-    print(f"{cmd[1]} says {cmd[2]}")
+    output = ["", ""]
+    if "$" in cmd[1]:
+        print("Var in Speaker Name")
+        for j in variables:
+            if cmd[1].strip("$") == list(j.keys())[0]:
+                    output[1] = j.get(cmd[1].strip("$"))
+            else:
+                output[1] = j.get(cmd[1].strip("$"))
+    else:
+        output[1] = cmd[1]
+
+    if "$" in cmd[2]:
+        print("Var in TEXT")
+        for j in variables:
+            if cmd[2].strip("$") == list(j.keys())[0]:
+                output[0] = j.get(cmd[2].strip("$"))
+            else:
+                output[0] = cmd[2]
+    else:
+        output[0] = cmd[2]
+    print(output)
+    print(f"{output[0]} says {output[1]}")
 
 def question(cmd):
     """
@@ -50,7 +74,7 @@ def ifcmd(cmd):
     """
     lookingFor = cmd[1]
     if cmd[2] == "IS":
-        for j in responses:
+        for j in variables:
             if lookingFor == list(j.keys())[0]:
                 if j[lookingFor] == cmd[3]:
                     return runCMD(cmd[4], splitter=";")
@@ -96,6 +120,85 @@ def returncmd(cmd):
             return None
     return NameError(f"variable {cmd[1]} does not exist")
 
+def add(cmd):
+    numbs = cmd[1].split(",")
+    values = []
+    for i in numbs:
+        if not LETTERS.match(str(i)):
+            values.append(int(i))
+        else:
+            for j in variables:
+                if i == list(j.keys())[0]:
+                    values.append(int(j.get(i)))
+
+    total = 0
+
+    for i in values:
+        total += i
+
+    var(["", "INT", cmd[2], total])
+
+def min(cmd):
+    numbs = cmd[1].split(",")
+    values = []
+    total = 0
+    for i in numbs:
+        if not LETTERS.match(str(i)):
+            values.append(int(i))
+        else:
+            for j in variables:
+                if i == list(j.keys())[0]:
+                    values.append(int(j.get(i)))
+
+
+
+    total = values[0]
+    values.pop(0)
+    for i in values:
+        total -= i
+
+    var(["", "INT", cmd[2], total])
+
+def mul(cmd):
+    numbs = cmd[1].split(",")
+    values = []
+    for i in numbs:
+        if not LETTERS.match(str(i)):
+            values.append(int(i))
+        else:
+            for j in variables:
+                if i == list(j.keys())[0]:
+                    values.append(int(j.get(i)))
+
+    total = values[0]
+    values.pop(0)
+    for i in values:
+        total *= i
+
+    var(["", "INT", cmd[2], total])
+
+def div(cmd):
+    numbs = cmd[1].split(",")
+    values = []
+    for i in numbs:
+        if not LETTERS.match(str(i)):
+            values.append(int(i))
+        else:
+            for j in variables:
+                if i == list(j.keys())[0]:
+                    values.append(int(j.get(i)))
+
+    total = values[0] / values[1]
+
+    var(["", "INT", cmd[2], total])
+
+def clear(cmd):
+    for j in range(len(variables)):
+        if cmd[1] == list(variables[j - 1].keys())[0]:
+            variables.pop(j - 1)
+
+
+
 def runCMD(cmd, splitter = ":"):
     cmd = cmd.split(splitter)
     if cmd[0] == "TEXT":
@@ -111,6 +214,16 @@ def runCMD(cmd, splitter = ":"):
         return var(cmd)
     elif cmd[0] == "RETURN":
         print(returncmd(cmd))
+    elif cmd[0] == "ADD":
+        return add(cmd)
+    elif cmd[0] == "MIN":
+        return min(cmd)
+    elif cmd[0] == "MUL":
+        return mul(cmd)
+    elif cmd[0] == "DIV":
+        return div(cmd)
+    elif cmd[0] == "CLEAR":
+        clear(cmd)
 
 dialogueFiles = os.scandir("dialogue")
 

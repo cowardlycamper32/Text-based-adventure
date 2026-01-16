@@ -1,16 +1,5 @@
 VAR:INT:PlayerHealth:20
+VAR:STRING:PlayerSlot1:Sword
+VAR:STRING:PlayerSlot2:Heal
 
-
-RETURN:VARS
-
-TEXT:Player:Hello World
-QUESTION:Player:yesnoone:STRING:Yes or No?:yes,no
-IF:yesnoone:NOT:Yes:GOTO;11
-TEXT:Player:Thank You
-GOTO:12
-TEXT:Player:Fuck You
-
-VAR:STRING:test:help
-RETURN:VARS
-VAR:STRING:test:no
-RETURN:VARS
+TEXT:Narrator:$PlayerHealth
