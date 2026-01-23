@@ -20,3 +20,7 @@ TYPES:
     INT = python integer
     FLOAT = python float
     BOOL = python boolean
+
+
+TODO:
+    add LOAD: a function for loading external resources, namely jsons, XMLs and .dialogue files
