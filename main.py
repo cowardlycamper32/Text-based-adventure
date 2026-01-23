@@ -28,27 +28,26 @@ def text(cmd):
     :return:
     """
     output = ["", ""]
-    if "$" in cmd[1]:
-        print("Var in Speaker Name")
-        for j in variables:
-            if cmd[1].strip("$") == list(j.keys())[0]:
-                    output[1] = j.get(cmd[1].strip("$"))
-            else:
-                output[1] = j.get(cmd[1].strip("$"))
-    else:
-        output[1] = cmd[1]
+    nameWords = cmd[1].split(" ")
+    for word in nameWords:
+        if "$" in word:
+            for j in variables:
+                if word.strip("$") == list(j.keys())[0]:
+                    output[1] += j.get(cmd[1].strip("$"))
+                    break
+        else:
+            output[1] = cmd[1]
 
-    if "$" in cmd[2]:
-        print("Var in TEXT")
-        for j in variables:
-            if cmd[2].strip("$") == list(j.keys())[0]:
-                output[0] = j.get(cmd[2].strip("$"))
-            else:
-                output[0] = cmd[2]
-    else:
-        output[0] = cmd[2]
-    print(output)
-    print(f"{output[0]} says {output[1]}")
+    speechWords = cmd[2].split(" ")
+    for word in speechWords:
+        if "$" in word:
+            for j in variables:
+                if word.strip("$") == list(j.keys())[0]:
+                    output[0] += f"{str(j.get(word.strip("$")))} "
+                    break
+        else:
+            output[0] += f"{word} "
+    print(f"{output[1]}:\n\t{output[0]}")
 
 def question(cmd):
     """
