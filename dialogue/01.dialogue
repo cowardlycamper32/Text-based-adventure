@@ -1,9 +1,25 @@
-VAR:INT:PlayerHealth:20
-VAR:STRING:PlayerSlot1:Sword
-VAR:STRING:PlayerSlot2:Heal
-VAR:STRING:NarVar:???
 
-TEXT:$NarVar:Fuck you
 
-TEXT:Narrator:Health is $PlayerHealth
-TEXT:Narrator:You have $PlayerSlot1 and $PlayerSlot2 in you arsenal
+//: example of a while loop
+//:TEXT:STARTING:Now
+//:VAR:INT:count:0
+
+//:IF:count:==:10:GOTO;11
+//:ADD:count,1:count
+//:RETURN:$count
+//:GOTO:6
+
+//:RETURN:finished while loop
+
+//: example of a for loop
+RETURN:STARTING FOR LOOP
+CLEAR:count
+VAR:INT:count:0
+VAR:INT:thing:10
+
+IF:$count:>=:$thing:GOTO:25
+ADD:count,1:count
+RETURN:$count
+GOTO:19
+
+RETURN:Finished for loop

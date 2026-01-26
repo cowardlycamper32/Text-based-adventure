@@ -72,16 +72,70 @@ def ifcmd(cmd):
     :return:
     """
     lookingFor = cmd[1]
-    if cmd[2] == "IS":
-        for j in variables:
-            if lookingFor == list(j.keys())[0]:
-                if j[lookingFor] == cmd[3]:
+
+    output = ["", ""]
+    nameWords = cmd[3].split(" ")
+    for word in nameWords:
+        if "$" in word:
+            for j in variables:
+                if word.strip("$") == list(j.keys())[0]:
+                    output[1] += str(j.get(cmd[1].strip("$")))
+                    break
+        else:
+            output[1] = f"{word} "
+
+    speechWords = cmd[1].split(" ")
+    for word in speechWords:
+        if "$" in word:
+            for j in variables:
+                if word.strip("$") == list(j.keys())[0]:
+                    output[0] += f"{str(j.get(word.strip("$")))} "
+                    break
+        else:
+            output[0] += f"{word} "
+
+
+
+    match cmd[2]:
+        case "==":
+            for j in variables:
+                if lookingFor == list(j.keys())[0]:
+                    if str(j[lookingFor]) == str(cmd[3]):
+                        return runCMD(cmd[4], splitter=";")
+        case "!=":
+            for j in variables:
+                if lookingFor == list(j.keys())[0]:
+                    if str(j[lookingFor]) != str(cmd[3]):
+                        return runCMD(cmd[4], splitter=";")
+        case ">":
+            for j in variables:
+                if lookingFor == list(j.keys())[0]:
+                    if int(j[lookingFor]) > int(cmd[3]):
+                        return runCMD(cmd[4], splitter=";")
+        case "<":
+            for j in variables:
+                if lookingFor == list(j.keys())[0]:
+                    if int(j[lookingFor]) < int(cmd[3]):
+                        return runCMD(cmd[4], splitter=";")
+        case ">=":
+            for j in variables:
+                if lookingFor == list(j.keys())[0]:
+                    if int(j[lookingFor]) >= int(cmd[3]):
+                        return runCMD(cmd[4], splitter=";")
+        case "<=":
+            for j in variables:
+                if lookingFor == list(j.keys())[0]:
+                    if int(j[lookingFor]) <= int(cmd[3]):
+                        return runCMD(cmd[4], splitter=";")
+        case "===":
+            for j in variables:
+                if (lookingFor == list(j.keys())[0]) and type(lookingFor) == list(j.keys())[0]:
                     return runCMD(cmd[4], splitter=";")
-    elif cmd[2] == "NOT":
-        for j in variables:
-            if lookingFor == list(j.keys())[0]:
-                if j[lookingFor] != cmd[3]:
+        case "!==":
+            for j in variables:
+                if not (lookingFor == list(j.keys())[0]) or not type(lookingFor) == list(j.keys())[0]:
                     return runCMD(cmd[4], splitter=";")
+
 
 
 def goto(cmd):
@@ -101,7 +155,9 @@ def var(cmd):
     :return:
     """
     for j in variables:
-        if j.get(cmd[2]):
+        varVal = j.get(cmd[1])
+
+        if not isinstance(varVal, bool):
             j[cmd[2]] = convert(cmd[3], cmd[1])
             return None
 
@@ -114,9 +170,17 @@ def var(cmd):
 def returncmd(cmd):
     if cmd[1] == "VARS":
         return variables
-    for j in variables:
-        if j.get(cmd[1]):
-            return None
+    nameWords = cmd[1].split(" ")
+    output = ""
+    for word in nameWords:
+        if "$" in word:
+            for j in variables:
+                if word.strip("$") == list(j.keys())[0]:
+                    output += str(j.get(cmd[1].strip("$")))
+                    return output
+        else:
+            output = cmd[1]
+            return output
     return NameError(f"variable {cmd[1]} does not exist")
 
 def add(cmd):
@@ -129,6 +193,7 @@ def add(cmd):
             for j in variables:
                 if i == list(j.keys())[0]:
                     values.append(int(j.get(i)))
+                    break
 
     total = 0
 
@@ -195,34 +260,48 @@ def clear(cmd):
     for j in range(len(variables)):
         if cmd[1] == list(variables[j - 1].keys())[0]:
             variables.pop(j - 1)
+            return None
+    return ValueError(f"variable {cmd[1]} does not exist")
 
 
 
 def runCMD(cmd, splitter = ":"):
+    if cmd == "":
+        return None
     cmd = cmd.split(splitter)
-    if cmd[0] == "TEXT":
-        return text(cmd)
-    elif cmd[0] == "QUESTION":
-       return question(cmd)
-    elif cmd[0] == "IF":
-       return ifcmd(cmd)
 
-    elif cmd[0] == "GOTO":
-        return goto(cmd)
-    elif cmd[0] == "VAR":
-        return var(cmd)
-    elif cmd[0] == "RETURN":
-        print(returncmd(cmd))
-    elif cmd[0] == "ADD":
-        return add(cmd)
-    elif cmd[0] == "MIN":
-        return min(cmd)
-    elif cmd[0] == "MUL":
-        return mul(cmd)
-    elif cmd[0] == "DIV":
-        return div(cmd)
-    elif cmd[0] == "CLEAR":
-        clear(cmd)
+    match cmd[0]:
+        case "TEXT":
+            return text(cmd)
+        case "QUESTION":
+            return question(cmd)
+        case "IF":
+            return ifcmd(cmd)
+        case "GOTO":
+            return goto(cmd)
+        case "VAR":
+            return var(cmd)
+        case "RETURN":
+            print(returncmd(cmd))
+            return None
+        case "CLEAR":
+            return clear(cmd)
+
+        # MATH functions
+        case "ADD":
+            return add(cmd)
+        case "MIN":
+            return min(cmd)
+        case "MUL":
+            return mul(cmd)
+        case "DIV":
+            return div(cmd)
+
+        case "//":
+            return None
+
+        case _:
+            raise ValueError(f"unknown command: {cmd[0]} at line {HEAD + 1}")
 
 dialogueFiles = os.scandir("dialogue")
 
