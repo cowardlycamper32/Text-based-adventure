@@ -1,8 +1,10 @@
 import os
 import re
+import traceback
 #from deprecated import deprecated
 
 LETTERS = re.compile("[a-zA-Z]")
+LOGLEVEL = 3
 
 def convert(obj, type):
     if type == "STRING" or type == "STR":
@@ -20,7 +22,7 @@ def convert(obj, type):
 
 
 
-def text(cmd):
+def text(cmd, delimiter="\n"):
     """
     display text in terminal
     format expected: TEXT:<name>:<text>
@@ -31,23 +33,21 @@ def text(cmd):
     nameWords = cmd[1].split(" ")
     for word in nameWords:
         if "$" in word:
-            for j in variables:
-                if word.strip("$") == list(j.keys())[0]:
-                    output[1] += j.get(cmd[1].strip("$"))
-                    break
+            varb = getVar(word)
+            output[1] += f"{varb["value"]} "
+            break
         else:
             output[1] = cmd[1]
 
     speechWords = cmd[2].split(" ")
     for word in speechWords:
         if "$" in word:
-            for j in variables:
-                if word.strip("$") == list(j.keys())[0]:
-                    output[0] += f"{str(j.get(word.strip("$")))} "
-                    break
+            varb = getVar(word)
+            output[0] += f"{varb["value"]} "
+            break
         else:
             output[0] += f"{word} "
-    print(f"{output[1]}:\n\t{output[0]}")
+    print(f"{output[1]}:\n\t{output[0]}", end=delimiter)
 
 def question(cmd):
     """
@@ -57,7 +57,9 @@ def question(cmd):
     :return:
     """
     options = cmd[5].split(",")
-    response = input(f"{cmd[1]} says {cmd[4]}:\n")
+    tempText = ["TEXT", cmd[1], cmd[4]]
+    text(tempText, delimiter="")
+    response = input()
     if response.lower() not in options:
         return Exception(f"{response} not in {options}")
     var(["", cmd[3], cmd[2], response])
@@ -77,20 +79,18 @@ def ifcmd(cmd):
     nameWords = cmd[3].split(" ")
     for word in nameWords:
         if "$" in word:
-            for j in variables:
-                if word.strip("$") == list(j.keys())[0]:
-                    output[1] += str(j.get(cmd[1].strip("$")))
-                    break
+            varb = getVar(word)
+            output[1] += f"{convert(varb['value'], varb['type'])} "
+            break
         else:
             output[1] = f"{word} "
 
     speechWords = cmd[1].split(" ")
     for word in speechWords:
         if "$" in word:
-            for j in variables:
-                if word.strip("$") == list(j.keys())[0]:
-                    output[0] += f"{str(j.get(word.strip("$")))} "
-                    break
+            varb = getVar(word)
+            output[0] += f"{convert(varb['value'], varb['type'])} "
+            break
         else:
             output[0] += f"{word} "
 
@@ -98,45 +98,43 @@ def ifcmd(cmd):
 
     match cmd[2]:
         case "==":
-            for j in variables:
-                if lookingFor == list(j.keys())[0]:
-                    if str(j[lookingFor]) == str(cmd[3]):
-                        return runCMD(cmd[4], splitter=";")
+            varb = getVar(lookingFor)
+            if convert(varb["value"], varb["type"])  == convert(cmd[3], varb['type']):
+                return runCMD(cmd[4], splitter=";")
         case "!=":
-            for j in variables:
-                if lookingFor == list(j.keys())[0]:
-                    if str(j[lookingFor]) != str(cmd[3]):
-                        return runCMD(cmd[4], splitter=";")
+            varb = getVar(lookingFor)
+            if convert(varb["value"], varb["type"]) != convert(cmd[3], varb['type']):
+                return runCMD(cmd[4], splitter=";")
         case ">":
-            for j in variables:
-                if lookingFor == list(j.keys())[0]:
-                    if int(j[lookingFor]) > int(cmd[3]):
-                        return runCMD(cmd[4], splitter=";")
+            varb = getVar(lookingFor)
+            if convert(varb["value"], varb["type"]) > convert(cmd[3], varb['type']):
+                return runCMD(cmd[4], splitter=";")
         case "<":
-            for j in variables:
-                if lookingFor == list(j.keys())[0]:
-                    if int(j[lookingFor]) < int(cmd[3]):
-                        return runCMD(cmd[4], splitter=";")
+            varb = getVar(lookingFor)
+            if convert(varb["value"], varb["type"]) < convert(cmd[3], varb['type']):
+                return runCMD(cmd[4], splitter=";")
         case ">=":
-            for j in variables:
-                if lookingFor == list(j.keys())[0]:
-                    if int(j[lookingFor]) >= int(cmd[3]):
-                        return runCMD(cmd[4], splitter=";")
+            varb = getVar(lookingFor)
+            if convert(varb["value"], varb["type"]) >= convert(cmd[3], varb['type']):
+                return runCMD(cmd[4], splitter=";")
         case "<=":
-            for j in variables:
-                if lookingFor == list(j.keys())[0]:
-                    if int(j[lookingFor]) <= int(cmd[3]):
-                        return runCMD(cmd[4], splitter=";")
-        case "===":
-            for j in variables:
-                if (lookingFor == list(j.keys())[0]) and type(lookingFor) == list(j.keys())[0]:
-                    return runCMD(cmd[4], splitter=";")
-        case "!==":
-            for j in variables:
-                if not (lookingFor == list(j.keys())[0]) or not type(lookingFor) == list(j.keys())[0]:
-                    return runCMD(cmd[4], splitter=";")
+            varb = getVar(lookingFor)
+            if convert(varb["value"], varb["type"]) <= convert(cmd[3], varb['type']):
+                return runCMD(cmd[4], splitter=";")
+        case _:
+            return ValueError(f"operator {cmd[2]} is not supported")
 
 
+
+def convertPyTypes(typeb: type):
+    if typeb == str:
+        return "STRING"
+    elif typeb == int:
+        return "INTEGER"
+    elif typeb == bool:
+        return "BOOLEAN"
+    elif typeb == float:
+        return "FLOAT"
 
 def goto(cmd):
     """
@@ -157,14 +155,25 @@ def var(cmd):
     for j in variables:
         varVal = j.get(cmd[1])
 
-        if not isinstance(varVal, bool):
-            j[cmd[2]] = convert(cmd[3], cmd[1])
-            return None
+        #if not isinstance(varVal, bool):
+        #    if not (not cmd[3] or cmd[3] == ""):
+        #        j[cmd[2]] == convert(None, cmd[1])
+        #    j[cmd[2]] = convert(cmd[3], cmd[1])
+        #    return None
+
+    varConstructor = {}
 
     if not (not cmd[3] or cmd[3] == ""):
-        variables.append({cmd[2]: convert(cmd[3], cmd[1])})
+        varConstructor["name"] = cmd[2]
+        varConstructor["type"] = cmd[1]
+        varConstructor["value"] = cmd[3]
+        variables.append(varConstructor)
     else:
-        variables.append({cmd[2]: convert(None, cmd[1])})
+        varConstructor["name"] = cmd[2]
+        varConstructor["type"] = cmd[1]
+        varConstructor["value"] = None
+        variables.append(varConstructor)
+    return None
 
 
 def returncmd(cmd):
@@ -263,7 +272,34 @@ def clear(cmd):
             return None
     return ValueError(f"variable {cmd[1]} does not exist")
 
+def modulo(cmd):
+    """
+    modulo function, expects ["MOD", x, y, <var_name>]
+    :param cmd:
+    :return:
+    """
+    numbs = cmd[1].split(",")
+    vara = getVar(numbs[0])
+    varb = getVar(numbs[1])
+    try:
+        out = convert(vara["value"], vara["type"]) % convert(varb["value"], varb["type"])
+        var(["", vara["type"], cmd[2], out])
+    except ValueError:
+        return ValueError(f"attempted to modulo veriables of types {vara['type']}, {varb['type']}")
 
+def getVar(var):
+    for j in variables:
+        if var.strip("$") == j.get("name"):
+            return j
+    out = {}
+    out["value"] = var
+    if LETTERS.match(str(var)):
+        typed = str
+    else:
+        typed = int
+
+    out["type"] = convertPyTypes(typed)
+    return out
 
 def runCMD(cmd, splitter = ":"):
     if cmd == "":
@@ -299,6 +335,8 @@ def runCMD(cmd, splitter = ":"):
 
         case "//":
             return None
+        case "MOD":
+            return modulo(cmd)
 
         case _:
             raise ValueError(f"unknown command: {cmd[0]} at line {HEAD + 1}")
@@ -314,20 +352,30 @@ for dialogueFilePath in dialogueFiles:
 
     running = True
     HEAD = 0
+    try:
+        while running:
+            instruction = instructions[HEAD].strip()
+            retVal = runCMD(instruction)
+            #print(retVal)
+            if not retVal:
+                HEAD = HEAD + 1
+            elif type(retVal) == int:
+                HEAD = retVal - 1
+            elif isinstance(retVal, Exception):
+                print(f"{'\033[91m'}{retVal}{'\033[0m'}")
+                if LOGLEVEL >= 3:
+                    print(f"{'\033[91m'}{traceback.format_exc()}{'\033[0m'}")
+                if type(retVal) == ValueError or type(retVal) == TypeError or type(retVal) == NameError:
+                    exit()
 
-    while running:
-        instruction = instructions[HEAD].strip()
-        retVal = runCMD(instruction)
-        #print(retVal)
-        if not retVal:
-            HEAD = HEAD + 1
-        elif type(retVal) == int:
-            HEAD = retVal - 1
-        elif type(retVal) == Exception:
-            print(f"{'\033[91m'}{retVal}{'\033[0m'}")
-            if type(retVal) == ValueError or type(retVal) == TypeError or type(retVal) == NameError:
-                exit()
 
 
         if HEAD >= len(instructions):
             running = False
+    except Exception as e:
+        if type(e) == KeyboardInterrupt:
+            print(f"\n{'\033[91m'}Execution Finished.{'\033[0m'}")
+        else:
+            print(f"{'\033[91m'}Internal Engine Exception '{type(e).__name__}' occurred at line \"{HEAD+1}\" with message '{e}'{'\033[0m'}")
+        if LOGLEVEL >= 3:
+            print(f"{'\033[91m'}{traceback.format_exc()}{'\033[0m'}")
