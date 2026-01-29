@@ -73,6 +73,7 @@ def ifcmd(cmd):
     :param cmd:
     :return:
     """
+    #TODO: [BUG] VARS with no value set will crash engine
     lookingFor = cmd[1]
 
     output = ["", ""]
