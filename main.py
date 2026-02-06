@@ -153,6 +153,13 @@ def var(cmd):
     :param cmd:
     :return:
     """
+    if getVar(cmd[2]):
+        variable = getVar(cmd[2])
+        idx = variables.index(variable)
+        newvar = variables[idx]
+        variables[idx]["value"] = cmd[3]
+        return None
+        newvarvalue = newvar["value"]
     for j in variables:
         varVal = j.get(cmd[1])
 
@@ -201,8 +208,9 @@ def add(cmd):
             values.append(int(i))
         else:
             for j in variables:
-                if i == list(j.keys())[0]:
-                    values.append(int(j.get(i)))
+                if i == j["name"]:
+                    val = j["value"]
+                    values.append(int(val))
                     break
 
     total = 0
@@ -221,8 +229,10 @@ def min(cmd):
             values.append(int(i))
         else:
             for j in variables:
-                if i == list(j.keys())[0]:
-                    values.append(int(j.get(i)))
+                if i == j["name"]:
+                    val = j["value"]
+                    values.append(int(val))
+                    break
 
 
 
@@ -241,8 +251,10 @@ def mul(cmd):
             values.append(int(i))
         else:
             for j in variables:
-                if i == list(j.keys())[0]:
-                    values.append(int(j.get(i)))
+                if i == j["name"]:
+                    val = j["value"]
+                    values.append(int(val))
+                    break
 
     total = values[0]
     values.pop(0)
@@ -259,8 +271,10 @@ def div(cmd):
             values.append(int(i))
         else:
             for j in variables:
-                if i == list(j.keys())[0]:
-                    values.append(int(j.get(i)))
+                if i == j["name"]:
+                    val = j["value"]
+                    values.append(int(val))
+                    break
 
     total = values[0] / values[1]
 
@@ -292,15 +306,15 @@ def getVar(var):
     for j in variables:
         if var.strip("$") == j.get("name"):
             return j
-    out = {}
-    out["value"] = var
-    if LETTERS.match(str(var)):
-        typed = str
-    else:
-        typed = int
+    #out = {}
+    #out["value"] = var
+    #if LETTERS.match(str(var)):
+    #    typed = str
+    #else:
+    #    typed = int
 
-    out["type"] = convertPyTypes(typed)
-    return out
+    #out["type"] = convertPyTypes(typed)
+    return None
 
 def runCMD(cmd, splitter = ":"):
     if cmd == "":
@@ -329,6 +343,8 @@ def runCMD(cmd, splitter = ":"):
             return add(cmd)
         case "MIN":
             return min(cmd)
+        case "SUB":
+            return min(cmd)
         case "MUL":
             return mul(cmd)
         case "DIV":
@@ -355,6 +371,9 @@ for dialogueFilePath in dialogueFiles:
     HEAD = 0
     try:
         while running:
+            if HEAD >= len(instructions):
+                running = False
+                break
             instruction = instructions[HEAD].strip()
             retVal = runCMD(instruction)
             #print(retVal)

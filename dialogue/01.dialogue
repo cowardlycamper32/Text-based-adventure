@@ -1,6 +1,6 @@
-//:MOD test
-VAR:INT:Health:20
-VAR:INT:Health2:10
-VAR:INT:out:0
-
-MOD:Health,2:out
+VAR:INT:p_health:10
+IF:p_health:<=:0:GOTO;6
+SUB:p_health,1:p_health
+TEXT:System:Health is $p_health
+GOTO:2
+TEXT:System:You are dead.
