@@ -53,6 +53,6 @@ TODO: add LOAD: a function for loading external resources, namely jsons, XMLs an
 ![img_1.png](img_1.png)
 <br><br>
 
-    
+
 
     
